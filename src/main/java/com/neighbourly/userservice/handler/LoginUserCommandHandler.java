@@ -50,7 +50,7 @@ public class LoginUserCommandHandler implements CommandHandler<LoginUserCommand,
             }
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getEmail());
+            String token = jwtService.generateToken(user.getEmail(), user.getId(), user.getRoles());
             return Either.right(new LoginResponseDTO(token, userDTO));
         } catch (InvalidCredentialsException e) {
             return Either.left(e.getMessage());

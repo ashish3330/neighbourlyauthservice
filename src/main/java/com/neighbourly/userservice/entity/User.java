@@ -1,8 +1,8 @@
 package com.neighbourly.userservice.entity;
 
 import jakarta.persistence.*;
-
 import java.time.Instant;
+import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -30,6 +30,11 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
+    @ElementCollection
+    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "role")
+    private List<String> roles;
+
     // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -51,4 +56,7 @@ public class User {
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
+
+    public List<String> getRoles() { return roles; }
+    public void setRoles(List<String> roles) { this.roles = roles; }
 }

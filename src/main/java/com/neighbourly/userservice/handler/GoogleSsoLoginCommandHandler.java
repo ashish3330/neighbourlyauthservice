@@ -47,7 +47,7 @@ public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLog
                     });
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getEmail());
+            String token = jwtService.generateToken(user.getEmail(),user.getId(),user.getRoles());
             return Either.right(new LoginResponseDTO(token, userDTO));
         } catch (Exception e) {
             return Either.left("Google SSO login failed: " + e.getMessage());
