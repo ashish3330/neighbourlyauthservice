@@ -13,6 +13,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCommand, UserDTO> {
 
@@ -61,11 +63,10 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
             if (passwordError != null) {
                 return Either.left(passwordError);
             }
-
             // Map DTO to entity
             User user = modelMapper.map(dto, User.class);
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
-
+            user.setRoles(List.of("USER")); // or from DTO if roles are dynamic
             User savedUser = userRepository.save(user);
             UserDTO userDTO = modelMapper.map(savedUser, UserDTO.class);
             return Either.right(userDTO);
