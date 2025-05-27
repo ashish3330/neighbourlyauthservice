@@ -12,6 +12,8 @@ import com.neighbourly.userservice.service.JwtService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+
 @Component
 public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLoginCommand, LoginResponseDTO> {
 
@@ -42,7 +44,8 @@ public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLog
                         newUser.setEmail(userInfo.getEmail());
                         newUser.setName(userInfo.getName());
                         newUser.setPhoneNumber("");
-                        newUser.setPassword(""); // No password for SSO users
+                        newUser.setPassword("");
+                        newUser.setRoles(List.of("USER"));// No password for SSO users
                         return userRepository.save(newUser);
                     });
 

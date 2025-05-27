@@ -1,13 +1,12 @@
 package com.neighbourly.userservice.service;
 
 import com.neighbourly.commonservice.dispatcher.Dispatcher;
+import com.neighbourly.commonservice.dispatcher.SyncDispatcher;
 import com.neighbourly.commonservice.errorhandling.Either;
-import com.neighbourly.userservice.command.ChangePasswordCommand;
-import com.neighbourly.userservice.command.GoogleSsoLoginCommand;
-import com.neighbourly.userservice.command.LoginUserCommand;
-import com.neighbourly.userservice.command.RegisterUserCommand;
+import com.neighbourly.userservice.command.*;
 import com.neighbourly.userservice.dto.*;
 import com.neighbourly.commonservice.service.GenericService;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -18,24 +17,40 @@ public class UserService implements GenericService<UserDTO, Long, UserDTO> {
 
     private final Dispatcher syncDispatcher;
 
-    public UserService(Dispatcher syncDispatcher) {
+    public UserService(@Qualifier("userServiceSyncDispatcher")Dispatcher syncDispatcher) {
         this.syncDispatcher = syncDispatcher;
+    }
+
+    public Either<String, String> requestOtp(RequestOtpDTO requestOtpDTO) {
+        return syncDispatcher.dispatch(new RequestOtpCommand(requestOtpDTO));
     }
 
     public Either<String, UserDTO> register(RegisterRequestDTO registerRequestDTO) {
         return syncDispatcher.dispatch(new RegisterUserCommand(registerRequestDTO));
     }
 
+    public Either<String, UserDTO> setPassword(SetPasswordRequestDTO setPasswordRequestDTO) {
+        return syncDispatcher.dispatch(new SetPasswordCommand(setPasswordRequestDTO));
+    }
+
     public Either<String, LoginResponseDTO> login(LoginRequestDTO loginRequestDTO) {
         return syncDispatcher.dispatch(new LoginUserCommand(loginRequestDTO));
     }
 
-    public Either<String, Void> changePassword(Long userId, ChangePasswordRequestDTO changePasswordRequestDTO) {
-        return syncDispatcher.dispatch(new ChangePasswordCommand(userId, changePasswordRequestDTO));
-    }
-
     public Either<String, LoginResponseDTO> googleSsoLogin(String googleIdToken) {
         return syncDispatcher.dispatch(new GoogleSsoLoginCommand(googleIdToken));
+    }
+
+    public Either<String, UserDTO> setLocation(SetLocationRequestDTO setLocationRequestDTO) {
+        return syncDispatcher.dispatch(new SetLocationCommand(setLocationRequestDTO));
+    }
+
+    public Either<String, UserDTO> setAddress(SetAddressRequestDTO setAddressRequestDTO) {
+        return syncDispatcher.dispatch(new SetAddressCommand(setAddressRequestDTO));
+    }
+
+    public Either<String, Void> changePassword(Long userId, ChangePasswordRequestDTO changePasswordRequestDTO) {
+        return syncDispatcher.dispatch(new ChangePasswordCommand(userId, changePasswordRequestDTO));
     }
 
     @Override
@@ -50,25 +65,21 @@ public class UserService implements GenericService<UserDTO, Long, UserDTO> {
 
     @Override
     public Either<String, Optional<UserDTO>> getById(Long id) {
-        // Implement if needed
         return Either.left("Not implemented");
     }
 
     @Override
     public Either<String, List<UserDTO>> getAll() {
-        // Implement if needed
         return Either.left("Not implemented");
     }
 
     @Override
     public Either<String, UserDTO> update(Long id, UserDTO dto) {
-        // Implement if needed
         return Either.left("Not implemented");
     }
 
     @Override
     public Either<String, Void> delete(Long id) {
-        // Implement if needed
         return Either.left("Not implemented");
     }
 }

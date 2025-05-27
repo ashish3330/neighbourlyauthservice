@@ -1,9 +1,8 @@
 package com.neighbourly.userservice.controller;
 
 import com.neighbourly.commonservice.errorhandling.Either;
-import com.neighbourly.userservice.command.*;
 import com.neighbourly.userservice.dto.*;
-import com.neighbourly.userservice.handler.*;
+import com.neighbourly.userservice.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,27 +10,15 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private final RequestOtpCommandHandler requestOtpHandler;
-    private final RegisterUserCommandHandler registerHandler;
-    private final SetPasswordCommandHandler setPasswordHandler;
-    private final LoginUserCommandHandler loginHandler;
-    private final GoogleSsoLoginCommandHandler googleSsoHandler;
+    private final UserService userService;
 
-    public AuthController(RequestOtpCommandHandler requestOtpHandler,
-                          RegisterUserCommandHandler registerHandler,
-                          SetPasswordCommandHandler setPasswordHandler,
-                          LoginUserCommandHandler loginHandler,
-                          GoogleSsoLoginCommandHandler googleSsoHandler) {
-        this.requestOtpHandler = requestOtpHandler;
-        this.registerHandler = registerHandler;
-        this.setPasswordHandler = setPasswordHandler;
-        this.loginHandler = loginHandler;
-        this.googleSsoHandler = googleSsoHandler;
+    public AuthController(UserService userService) {
+        this.userService = userService;
     }
 
     @PostMapping("/request-otp")
     public ResponseEntity<String> requestOtp(@RequestBody RequestOtpDTO dto) {
-        Either<String, String> result = requestOtpHandler.handle(new RequestOtpCommand(dto));
+        Either<String, String> result = userService.requestOtp(dto);
         return result.isRight()
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
@@ -39,7 +26,7 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequestDTO dto) {
-        Either<String, UserDTO> result = registerHandler.handle(new RegisterUserCommand(dto));
+        Either<String, UserDTO> result = userService.register(dto);
         return result.isRight()
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
@@ -47,7 +34,7 @@ public class AuthController {
 
     @PostMapping("/set-password")
     public ResponseEntity<?> setPassword(@RequestBody SetPasswordRequestDTO dto) {
-        Either<String, UserDTO> result = setPasswordHandler.handle(new SetPasswordCommand(dto));
+        Either<String, UserDTO> result = userService.setPassword(dto);
         return result.isRight()
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
@@ -55,7 +42,7 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequestDTO dto) {
-        Either<String, LoginResponseDTO> result = loginHandler.handle(new LoginUserCommand(dto));
+        Either<String, LoginResponseDTO> result = userService.login(dto);
         return result.isRight()
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
@@ -63,10 +50,9 @@ public class AuthController {
 
     @PostMapping("/google-sso")
     public ResponseEntity<?> googleSso(@RequestBody GoogleSsoLoginRequestDTO dto) {
-        Either<String, LoginResponseDTO> result = googleSsoHandler.handle(new GoogleSsoLoginCommand(dto.getGoogleIdToken()));
+        Either<String, LoginResponseDTO> result = userService.googleSsoLogin(dto.getGoogleIdToken());
         return result.isRight()
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
     }
 }
-
