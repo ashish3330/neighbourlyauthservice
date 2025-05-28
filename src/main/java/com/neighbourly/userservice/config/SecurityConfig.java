@@ -54,7 +54,17 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable()) // Re-enable in production
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login", "/api/auth/register", "/api/auth/request-otp", "/api/auth/google-sso").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/register",
+                                "/api/auth/request-otp",
+                                "/api/auth/google-sso",
+                                "/swagger-ui/**",           // Permit Swagger UI
+                                "/v3/api-docs/**",          // Permit OpenAPI docs
+                                "/swagger-resources/**",
+                                "/api-docs/**",             // Springdoc configuration
+                                "/swagger-ui.html"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2
