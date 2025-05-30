@@ -1,34 +1,21 @@
 package com.neighbourly.userservice.config;
 
-import com.neighbourly.userservice.security.CustomPrincipal;
+import com.neighbourly.userservice.config.JwtAuthenticationSuccessHandler;
 import com.neighbourly.userservice.security.CustomUserDetailsService;
 import com.neighbourly.userservice.security.JwtAuthenticationEntryPoint;
 import com.neighbourly.userservice.security.JwtAuthenticationFilter;
-import com.neighbourly.userservice.service.JwtService;
-import jakarta.servlet.FilterChain;
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
-import org.springframework.stereotype.Component;
-import org.springframework.web.filter.OncePerRequestFilter;
-
-import java.io.IOException;
-import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -52,7 +39,7 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // Re-enable in production
+                .csrf(csrf -> csrf.disable()) // Re-enable in production with CSRF tokens
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -60,12 +47,19 @@ public class SecurityConfig {
                                 "/api/auth/register",
                                 "/api/auth/request-otp",
                                 "/api/auth/google-sso",
-                                "/swagger-ui/**",           // Permit Swagger UI
-                                "/v3/api-docs/**",          // Permit OpenAPI docs
+                                "/api/auth/refresh",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
                                 "/swagger-resources/**",
-                                "/api-docs/**",             // Springdoc configuration
+                                "/api-docs/**",
                                 "/swagger-ui.html"
                         ).permitAll()
+                        .requestMatchers("/api/users/**").hasAuthority("ROLE_ADMIN")
+                        .requestMatchers("/api/olx/**").hasAnyAuthority("ROLE_OLX_BUYER", "ROLE_OLX_SELLER")
+                        .requestMatchers("/api/zomato/**").hasAnyAuthority("ROLE_ZOMATO_CUSTOMER", "ROLE_ZOMATO_RESTAURANT", "ROLE_ZOMATO_DRIVER")
+                        .requestMatchers("/api/zoomcar/**").hasAnyAuthority("ROLE_ZOOMCAR_RENTER", "ROLE_ZOOMCAR_OWNER")
+                        .requestMatchers("/api/quickride/**").hasAnyAuthority("ROLE_QUICKRIDE_RIDER", "ROLE_QUICKRIDE_DRIVER")
+                        .requestMatchers("/api/neighborhoods/**").hasAuthority("ROLE_NEXTDOOR_MEMBER")
                         .anyRequest().authenticated()
                 )
                 .oauth2Login(oauth2 -> oauth2

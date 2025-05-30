@@ -1,8 +1,11 @@
 package com.neighbourly.userservice.entity;
 
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.Type;
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @Table(name = "users")
@@ -30,21 +33,19 @@ public class User {
     @Column(nullable = false)
     private Instant createdAt = Instant.now();
 
-
-
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "address_id")
     private Address address;
+
     @Column
     private Double latitude;
 
     @Column
     private Double longitude;
 
-    @ElementCollection
-    @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
-    @Column(name = "role")
-    private List<String> roles;
+    @Type(JsonType.class)
+    @Column(columnDefinition = "jsonb")
+    private Map<String, List<String>> roles;
 
     // Getters and Setters
     public Long getId() { return id; }
@@ -68,13 +69,8 @@ public class User {
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 
-    public Address getAddress() {
-        return address;
-    }
-
-    public void setAddress(Address address) {
-        this.address = address;
-    }
+    public Address getAddress() { return address; }
+    public void setAddress(Address address) { this.address = address; }
 
     public Double getLatitude() { return latitude; }
     public void setLatitude(Double latitude) { this.latitude = latitude; }
@@ -82,6 +78,6 @@ public class User {
     public Double getLongitude() { return longitude; }
     public void setLongitude(Double longitude) { this.longitude = longitude; }
 
-    public List<String> getRoles() { return roles; }
-    public void setRoles(List<String> roles) { this.roles = roles; }
+    public Map<String, List<String>> getRoles() { return roles; }
+    public void setRoles(Map<String, List<String>> roles) { this.roles = roles; }
 }

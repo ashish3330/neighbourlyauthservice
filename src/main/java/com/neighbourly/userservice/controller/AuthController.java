@@ -2,9 +2,12 @@ package com.neighbourly.userservice.controller;
 
 import com.neighbourly.commonservice.errorhandling.Either;
 import com.neighbourly.userservice.dto.*;
+import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -55,4 +58,5 @@ public class AuthController {
                 ? ResponseEntity.ok(result.getRight())
                 : ResponseEntity.badRequest().body(result.getLeft());
     }
+
 }

@@ -6,13 +6,9 @@ import com.neighbourly.commonservice.dispatcher.registry.HandlerRegistry;
 import com.neighbourly.userservice.command.*;
 import com.neighbourly.userservice.handler.*;
 import jakarta.annotation.PostConstruct;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.web.AuthenticationEntryPoint;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 
@@ -27,12 +23,15 @@ public class UserServiceConfig {
     private final SetLocationCommandHandler setLocationCommandHandler;
     private  final RequestOtpCommandHandler requestOtpCommandHandler;
     private  final SetPasswordCommandHandler setPasswordCommandHandler;
+    private  final RefreshTokenCommandHandler refreshTokenCommandHandler;
 
     public UserServiceConfig(HandlerRegistry handlerRegistry,
                              RegisterUserCommandHandler registerUserCommandHandler,
                              LoginUserCommandHandler loginUserCommandHandler,
                              ChangePasswordCommandHandler changePasswordCommandHandler,
-                             GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler, SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler, SetPasswordCommandHandler setPasswordCommandHandler) {
+                             GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler,
+                             SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler,
+                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenCommandHandler refreshTokenCommandHandler) {
         this.handlerRegistry = handlerRegistry;
         this.registerUserCommandHandler = registerUserCommandHandler;
         this.loginUserCommandHandler = loginUserCommandHandler;
@@ -41,6 +40,7 @@ public class UserServiceConfig {
         this.setLocationCommandHandler = setLocationCommandHandler;
         this.requestOtpCommandHandler = requestOtpCommandHandler;
         this.setPasswordCommandHandler = setPasswordCommandHandler;
+        this.refreshTokenCommandHandler = refreshTokenCommandHandler;
     }
 
     @PostConstruct
@@ -52,6 +52,7 @@ public class UserServiceConfig {
         handlerRegistry.registerHandler(GoogleSsoLoginCommand.class, googleSsoLoginCommandHandler);
         handlerRegistry.registerHandler(RequestOtpCommand.class, requestOtpCommandHandler);
         handlerRegistry.registerHandler(SetPasswordCommand.class, setPasswordCommandHandler);
+        handlerRegistry.registerHandler(RefreshTokenCommand.class, refreshTokenCommandHandler);
     }
 
 

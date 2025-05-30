@@ -45,12 +45,11 @@ public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLog
                         newUser.setName(userInfo.getName());
                         newUser.setPhoneNumber("");
                         newUser.setPassword("");
-                        newUser.setRoles(List.of("USER"));// No password for SSO users
                         return userRepository.save(newUser);
                     });
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getEmail(),user.getId(),user.getRoles());
+            String token = jwtService.generateToken(user.getId(),user.getEmail(),user.getRoles());
             return Either.right(new LoginResponseDTO(token, userDTO));
         } catch (Exception e) {
             return Either.left("Google SSO login failed: " + e.getMessage());

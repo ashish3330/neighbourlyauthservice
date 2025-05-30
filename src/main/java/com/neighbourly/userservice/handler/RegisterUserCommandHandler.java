@@ -7,11 +7,12 @@ import com.neighbourly.userservice.dto.RegisterRequestDTO;
 import com.neighbourly.userservice.dto.UserDTO;
 import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.repository.UserRepository;
+import com.neighbourly.userservice.service.OtpService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
+import java.util.HashMap;
 
 @Component
 public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCommand, UserDTO> {
@@ -19,11 +20,13 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
+    private final OtpService otpService;
 
-    public RegisterUserCommandHandler(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder) {
+    public RegisterUserCommandHandler(UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, OtpService otpService) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
+        this.otpService = otpService;
     }
 
     @Override
@@ -31,9 +34,16 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
         try {
             RegisterRequestDTO dto = command.getRegisterRequestDTO();
 
+            // Verify OTP matches the email
+
+
             // Check if user already exists
             if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
                 return Either.left("User with this email already exists");
+            }
+
+            if (!otpService.verifyOtp(dto.getEmail(), dto.getOtp())) {
+                return Either.left("Invalid or expired OTP for email: " + dto.getEmail());
             }
 
             // Create new user
@@ -42,12 +52,9 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
             user.setEmail(dto.getEmail());
             user.setPhoneNumber(dto.getPhoneNumber());
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            user.setLatitude(null); // Explicitly set to null
+            user.setLatitude(null);
             user.setLongitude(null);
-            user.setRoles(List.of("USER"));
-            ;// Explicitly set to null
-            // Set other fields like roles, createdAt, etc., as needed
-
+            user.setRoles(new HashMap<>());
             User savedUser = userRepository.save(user);
             UserDTO userDTO = modelMapper.map(savedUser, UserDTO.class);
             return Either.right(userDTO);
