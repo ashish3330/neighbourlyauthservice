@@ -3,6 +3,7 @@ package com.neighbourly.userservice.config;
 import com.neighbourly.userservice.security.CustomPrincipal;
 import com.neighbourly.userservice.security.CustomUserDetailsService;
 import com.neighbourly.userservice.security.JwtAuthenticationEntryPoint;
+import com.neighbourly.userservice.security.JwtAuthenticationFilter;
 import com.neighbourly.userservice.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -95,40 +96,5 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig) throws Exception {
         return authConfig.getAuthenticationManager();
-    }
-
-    @Component
-    public static class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-        private final JwtService jwtService;
-
-        public JwtAuthenticationFilter(JwtService jwtService) {
-            this.jwtService = jwtService;
-        }
-
-        @Override
-        protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
-                throws ServletException, IOException {
-            String authHeader = request.getHeader("Authorization");
-            if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                String token = authHeader.substring(7);
-                if (jwtService.validateToken(token)) {
-                    String username = jwtService.getUsernameFromToken(token);
-                    Long userId = jwtService.getUserIdFromToken(token);
-                    List<String> roles = jwtService.getRolesFromToken(token);
-
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            new CustomPrincipal(userId, username, roles),
-                            null,
-                            roles.stream()
-                                    .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role))
-                                    .toList()
-                    );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                }
-            }
-            filterChain.doFilter(request, response);
-        }
     }
 }

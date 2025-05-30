@@ -26,12 +26,13 @@ public class UserServiceConfig {
     private final GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler;
     private final SetLocationCommandHandler setLocationCommandHandler;
     private  final RequestOtpCommandHandler requestOtpCommandHandler;
+    private  final SetPasswordCommandHandler setPasswordCommandHandler;
 
     public UserServiceConfig(HandlerRegistry handlerRegistry,
                              RegisterUserCommandHandler registerUserCommandHandler,
                              LoginUserCommandHandler loginUserCommandHandler,
                              ChangePasswordCommandHandler changePasswordCommandHandler,
-                             GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler, SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler) {
+                             GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler, SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler, SetPasswordCommandHandler setPasswordCommandHandler) {
         this.handlerRegistry = handlerRegistry;
         this.registerUserCommandHandler = registerUserCommandHandler;
         this.loginUserCommandHandler = loginUserCommandHandler;
@@ -39,6 +40,7 @@ public class UserServiceConfig {
         this.googleSsoLoginCommandHandler = googleSsoLoginCommandHandler;
         this.setLocationCommandHandler = setLocationCommandHandler;
         this.requestOtpCommandHandler = requestOtpCommandHandler;
+        this.setPasswordCommandHandler = setPasswordCommandHandler;
     }
 
     @PostConstruct
@@ -49,6 +51,7 @@ public class UserServiceConfig {
         handlerRegistry.registerHandler(SetLocationCommand.class, setLocationCommandHandler);
         handlerRegistry.registerHandler(GoogleSsoLoginCommand.class, googleSsoLoginCommandHandler);
         handlerRegistry.registerHandler(RequestOtpCommand.class, requestOtpCommandHandler);
+        handlerRegistry.registerHandler(SetPasswordCommand.class, setPasswordCommandHandler);
     }
 
 
