@@ -24,6 +24,10 @@ public class UserServiceConfig {
     private  final RequestOtpCommandHandler requestOtpCommandHandler;
     private  final SetPasswordCommandHandler setPasswordCommandHandler;
     private  final RefreshTokenCommandHandler refreshTokenCommandHandler;
+    private  final CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler;
+    private final SubmitDocumentCommandHandler submitDocumentCommandHandler;
+    private final SubmitRatingCommandHandler submitRatingCommandHandler;
+    private final VerifyDocumentCommandHandler verifyDocumentCommandHandler;
 
     public UserServiceConfig(HandlerRegistry handlerRegistry,
                              RegisterUserCommandHandler registerUserCommandHandler,
@@ -31,7 +35,7 @@ public class UserServiceConfig {
                              ChangePasswordCommandHandler changePasswordCommandHandler,
                              GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler,
                              SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler,
-                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenCommandHandler refreshTokenCommandHandler) {
+                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenCommandHandler refreshTokenCommandHandler, CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler, SubmitDocumentCommandHandler submitDocumentCommandHandler, SubmitRatingCommandHandler submitRatingCommandHandler, VerifyDocumentCommandHandler verifyDocumentCommandHandler) {
         this.handlerRegistry = handlerRegistry;
         this.registerUserCommandHandler = registerUserCommandHandler;
         this.loginUserCommandHandler = loginUserCommandHandler;
@@ -41,6 +45,10 @@ public class UserServiceConfig {
         this.requestOtpCommandHandler = requestOtpCommandHandler;
         this.setPasswordCommandHandler = setPasswordCommandHandler;
         this.refreshTokenCommandHandler = refreshTokenCommandHandler;
+        this.createServiceProviderProfileCommandHandler = createServiceProviderProfileCommandHandler;
+        this.submitDocumentCommandHandler = submitDocumentCommandHandler;
+        this.submitRatingCommandHandler = submitRatingCommandHandler;
+        this.verifyDocumentCommandHandler = verifyDocumentCommandHandler;
     }
 
     @PostConstruct
@@ -53,12 +61,28 @@ public class UserServiceConfig {
         handlerRegistry.registerHandler(RequestOtpCommand.class, requestOtpCommandHandler);
         handlerRegistry.registerHandler(SetPasswordCommand.class, setPasswordCommandHandler);
         handlerRegistry.registerHandler(RefreshTokenCommand.class, refreshTokenCommandHandler);
+        handlerRegistry.registerHandler(CreateServiceProviderProfileCommand.class, createServiceProviderProfileCommandHandler);
+        handlerRegistry.registerHandler(SubmitDocumentCommand.class, submitDocumentCommandHandler);
+        handlerRegistry.registerHandler(SubmitRatingCommand.class, submitRatingCommandHandler);
+        handlerRegistry.registerHandler(VerifyDocumentCommand.class, verifyDocumentCommandHandler);
     }
 
 
 
     @Bean(name = "userServiceSyncDispatcher")
-    public Dispatcher syncDispatcher(HandlerRegistry handlerRegistry) {
+    public SyncDispatcher userServiceSyncDispatcher(HandlerRegistry handlerRegistry) {
+        return new SyncDispatcher(handlerRegistry);
+    }
+
+
+    @Bean(name = "userProfileSyncDispatcher")
+    public SyncDispatcher userProfileSyncDispatcher(HandlerRegistry handlerRegistry) {
+        return new SyncDispatcher(handlerRegistry);
+    }
+
+
+    @Bean(name = "setLocationSyncDispatcher")
+    public SyncDispatcher setLocationSyncDispatcher(HandlerRegistry handlerRegistry) {
         return new SyncDispatcher(handlerRegistry);
     }
 

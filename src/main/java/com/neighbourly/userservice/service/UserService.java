@@ -15,9 +15,9 @@ import java.util.Optional;
 @Service
 public class UserService implements GenericService<UserDTO, Long, UserDTO> {
 
-    private final Dispatcher syncDispatcher;
+    private final SyncDispatcher syncDispatcher;
 
-    public UserService(@Qualifier("userServiceSyncDispatcher")Dispatcher syncDispatcher) {
+    public UserService(@Qualifier("userServiceSyncDispatcher")SyncDispatcher syncDispatcher) {
         this.syncDispatcher = syncDispatcher;
     }
 
