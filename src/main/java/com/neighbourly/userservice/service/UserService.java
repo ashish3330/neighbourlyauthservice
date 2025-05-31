@@ -46,13 +46,6 @@ public class UserService implements GenericService<UserDTO, Long, UserDTO> {
         return syncDispatcher.dispatch(new GoogleSsoLoginCommand(googleIdToken));
     }
 
-    public Either<String, UserDTO> setLocation(SetLocationRequestDTO setLocationRequestDTO) {
-        return syncDispatcher.dispatch(new SetLocationCommand(setLocationRequestDTO));
-    }
-
-    public Either<String, UserDTO> setAddress(SetAddressRequestDTO setAddressRequestDTO) {
-        return syncDispatcher.dispatch(new SetAddressCommand(setAddressRequestDTO));
-    }
 
     public Either<String, Void> changePassword(Long userId, ChangePasswordRequestDTO changePasswordRequestDTO) {
         return syncDispatcher.dispatch(new ChangePasswordCommand(userId, changePasswordRequestDTO));

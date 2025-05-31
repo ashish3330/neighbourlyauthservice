@@ -45,7 +45,7 @@ public class RefreshTokenHandler implements CommandHandler<RefreshTokenCommand, 
             jwtCookie.setMaxAge(7 * 24 * 60 * 60);
             jwtCookie.setAttribute("SameSite", "Strict");
 
-            return Either.right(new LoginResponseDTO(newAccessToken, userDTO, jwtCookie, null, null));
+            return Either.right(new LoginResponseDTO(newAccessToken, refreshToken, userDTO, jwtCookie, null, null));
         } catch (Exception e) {
             return Either.left("Refresh failed: " + e.getMessage());
         }

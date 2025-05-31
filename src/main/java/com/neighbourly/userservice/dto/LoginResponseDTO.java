@@ -12,13 +12,14 @@ import lombok.Setter;
 @AllArgsConstructor
 public class LoginResponseDTO {
     private String accessToken;
+    private String refreshToken; // Added
     private UserDTO user;
     private Cookie accessCookie;
     private Cookie refreshCookie;
     private String error;
 
-    public LoginResponseDTO(String token, UserDTO userDTO, Cookie jwtCookie, Cookie refreshCookie, Object o) {
-    }
+
+
 
     public String getAccessToken() {
         return accessToken;
@@ -26,6 +27,14 @@ public class LoginResponseDTO {
 
     public void setAccessToken(String accessToken) {
         this.accessToken = accessToken;
+    }
+
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+
+    public void setRefreshToken(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     public UserDTO getUser() {

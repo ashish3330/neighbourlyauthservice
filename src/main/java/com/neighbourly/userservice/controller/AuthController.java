@@ -50,7 +50,7 @@ public class AuthController {
         }
         LoginResponseDTO responseDTO = result.getRight();
         ResponseCookie accessCookie = cookieUtil.createAccessCookie(responseDTO.getAccessToken());
-        ResponseCookie refreshCookie = cookieUtil.createRefreshCookie(responseDTO.getAccessToken());
+        ResponseCookie refreshCookie = cookieUtil.createRefreshCookie(responseDTO.getRefreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString(), refreshCookie.toString())
                 .body(responseDTO);
@@ -64,7 +64,7 @@ public class AuthController {
         }
         LoginResponseDTO responseDTO = result.getRight();
         ResponseCookie accessCookie = cookieUtil.createAccessCookie(responseDTO.getAccessToken());
-        ResponseCookie refreshCookie = cookieUtil.createRefreshCookie(responseDTO.getAccessToken());
+        ResponseCookie refreshCookie = cookieUtil.createRefreshCookie(responseDTO.getRefreshToken());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, accessCookie.toString(), refreshCookie.toString())
                 .body(responseDTO);

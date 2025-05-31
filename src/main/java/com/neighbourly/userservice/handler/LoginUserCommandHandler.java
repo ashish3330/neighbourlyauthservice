@@ -68,7 +68,7 @@ public class LoginUserCommandHandler implements CommandHandler<LoginUserCommand,
             refreshCookie.setMaxAge(30 * 24 * 60 * 60);
             refreshCookie.setAttribute("SameSite", "Strict");
 
-            return Either.right(new LoginResponseDTO(token, userDTO, jwtCookie, refreshCookie, null));
+            return Either.right(new LoginResponseDTO(token, refreshToken, userDTO, jwtCookie, refreshCookie, null));
         } catch (InvalidCredentialsException e) {
             return Either.left(e.getMessage());
         } catch (Exception e) {

@@ -9,11 +9,11 @@ import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.repository.UserRepository;
 import com.neighbourly.userservice.service.GoogleSsoService;
 import com.neighbourly.userservice.service.JwtService;
-import jakarta.servlet.http.Cookie;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Map;
 
 @Component
 public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLoginCommand, LoginResponseDTO> {
@@ -38,36 +38,22 @@ public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLog
                 return Either.left("Google ID token is required");
             }
             GoogleSsoService.GoogleUserInfo userInfo = googleSsoService.verifyIdToken(command.getGoogleIdToken());
-            User user = userRepository.findByGoogleId(userInfo.getGoogleId())
+            User user = userRepository.findByEmail(userInfo.getEmail())
                     .orElseGet(() -> {
                         User newUser = new User();
-                        newUser.setGoogleId(userInfo.getGoogleId());
                         newUser.setEmail(userInfo.getEmail());
                         newUser.setName(userInfo.getName());
                         newUser.setPhoneNumber("");
                         newUser.setPassword("");
+                        newUser.setRoles(Map.of("user", List.of("read"))); // Default role
                         return userRepository.save(newUser);
                     });
 
-
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getId(),user.getEmail(),user.getRoles());
+            String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRoles());
             String refreshToken = jwtService.generateRefreshToken(user.getId());
 
-            Cookie jwtCookie = new Cookie("jwtToken", token);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true);
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(7 * 24 * 60 * 60);
-            jwtCookie.setAttribute("SameSite", "Strict");
-
-            Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
-            refreshCookie.setHttpOnly(true);
-            refreshCookie.setSecure(true);
-            refreshCookie.setPath("/");
-            refreshCookie.setMaxAge(30 * 24 * 60 * 60);
-            refreshCookie.setAttribute("SameSite", "Strict");
-            return Either.right(new LoginResponseDTO(token, userDTO, jwtCookie, refreshCookie, null));
+            return Either.right(new LoginResponseDTO(token, refreshToken, userDTO, null, null, null));
         } catch (Exception e) {
             return Either.left("Google SSO login failed: " + e.getMessage());
         }
