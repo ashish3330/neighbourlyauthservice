@@ -8,6 +8,7 @@ import com.neighbourly.userservice.dto.UserDTO;
 import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.repository.UserRepository;
 import com.neighbourly.userservice.service.JwtService;
+import com.neighbourly.userservice.util.CookieUtil;
 import jakarta.servlet.http.Cookie;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
@@ -18,11 +19,13 @@ public class RefreshTokenHandler implements CommandHandler<RefreshTokenCommand, 
     private final JwtService jwtService;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private  final CookieUtil cookieUtil;
 
-    public RefreshTokenHandler(JwtService jwtService, UserRepository userRepository, ModelMapper modelMapper) {
+    public RefreshTokenHandler(JwtService jwtService, UserRepository userRepository, ModelMapper modelMapper, CookieUtil cookieUtil) {
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.cookieUtil = cookieUtil;
     }
 
     @Override
@@ -37,14 +40,7 @@ public class RefreshTokenHandler implements CommandHandler<RefreshTokenCommand, 
                     .orElseThrow(() -> new RuntimeException("User not found"));
             String newAccessToken = jwtService.generateToken(userId, user.getEmail(), user.getRoles());
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-
-            Cookie jwtCookie = new Cookie("jwtToken", newAccessToken);
-            jwtCookie.setHttpOnly(true);
-            jwtCookie.setSecure(true);
-            jwtCookie.setPath("/");
-            jwtCookie.setMaxAge(7 * 24 * 60 * 60);
-            jwtCookie.setAttribute("SameSite", "Strict");
-
+            Cookie jwtCookie = cookieUtil.createServletAccessCookie(newAccessToken);
             return Either.right(new LoginResponseDTO(newAccessToken, refreshToken, userDTO, jwtCookie, null, null));
         } catch (Exception e) {
             return Either.left("Refresh failed: " + e.getMessage());

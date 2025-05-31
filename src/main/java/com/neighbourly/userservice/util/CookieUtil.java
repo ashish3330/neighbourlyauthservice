@@ -1,5 +1,6 @@
 package com.neighbourly.userservice.util;
 
+import jakarta.servlet.http.Cookie;
 import org.springframework.http.ResponseCookie;
 import org.springframework.stereotype.Component;
 
@@ -52,5 +53,25 @@ public class CookieUtil {
                 .maxAge(CLEAR_COOKIE_MAX_AGE)
                 .sameSite(SAME_SITE)
                 .build();
+    }
+
+    public Cookie createServletAccessCookie(String accessToken) {
+        Cookie cookie = new Cookie(ACCESS_TOKEN_NAME, accessToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath(COOKIE_PATH);
+        cookie.setMaxAge((int) ACCESS_TOKEN_MAX_AGE);
+        cookie.setAttribute("SameSite", SAME_SITE);
+        return cookie;
+    }
+
+    public Cookie createServletRefreshCookie(String refreshToken) {
+        Cookie cookie = new Cookie(REFRESH_TOKEN_NAME, refreshToken);
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setPath(COOKIE_PATH);
+        cookie.setMaxAge((int) REFRESH_TOKEN_MAX_AGE);
+        cookie.setAttribute("SameSite", SAME_SITE);
+        return cookie;
     }
 }
