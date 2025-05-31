@@ -1,7 +1,4 @@
 package com.neighbourly.userservice.security;
-
-import com.neighbourly.userservice.security.CustomPrincipal;
-import com.neighbourly.userservice.security.SecurityConstants;
 import com.neighbourly.userservice.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -11,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
@@ -65,7 +63,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                             .flatMap(e -> e.getValue().stream()).collect(Collectors.toList())),
                     null,
                     authorities.stream()
-                            .map(role -> new org.springframework.security.core.authority.SimpleGrantedAuthority(role))
+                            .map(SimpleGrantedAuthority::new)
                             .collect(Collectors.toList())
             );
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
