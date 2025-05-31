@@ -107,14 +107,6 @@ public class SubmitRatingCommandHandler implements CommandHandler<SubmitRatingCo
     }
 
     private RatingDTO mapToDTO(RatingEntity entity) {
-        return new RatingDTO(
-                entity.getId(),
-                entity.getServiceProviderProfile().getId(),
-                entity.getRaterUser().getId(),
-                entity.getService().getId(),
-                entity.getRating(),
-                entity.getComment(),
-                entity.getCreatedAt()
-        );
+        return modelMapper.map(entity, RatingDTO.class);
     }
 }

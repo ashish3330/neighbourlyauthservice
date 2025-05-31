@@ -80,14 +80,6 @@ public class VerifyDocumentCommandHandler implements CommandHandler<VerifyDocume
     }
 
     private DocumentDTO mapToDTO(DocumentEntity entity) {
-        return new DocumentDTO(
-                entity.getId(),
-                entity.getUser().getId(),
-                entity.getService().getId(),
-                entity.getDocumentType(),
-                entity.getStatus(),
-                entity.getUploadedAt(),
-                entity.getVerifiedAt()
-        );
+        return modelMapper.map(entity, DocumentDTO.class);
     }
 }

@@ -28,6 +28,7 @@ public class SubmitDocumentCommandHandler implements CommandHandler<SubmitDocume
     private final ModelMapper modelMapper;
     private final CommonValidationUtil validationUtil;
 
+
     public SubmitDocumentCommandHandler(
             UserRepository userRepository,
             ServiceRepository serviceRepository,
@@ -89,14 +90,6 @@ public class SubmitDocumentCommandHandler implements CommandHandler<SubmitDocume
     }
 
     private DocumentDTO mapToDTO(DocumentEntity entity) {
-        return new DocumentDTO(
-                entity.getId(),
-                entity.getUser().getId(),
-                entity.getService().getId(),
-                entity.getDocumentType(),
-                entity.getStatus(),
-                entity.getUploadedAt(),
-                entity.getVerifiedAt()
-        );
+        return modelMapper.map(entity, DocumentDTO.class);
     }
 }

@@ -34,13 +34,13 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
         try {
             RegisterRequestDTO dto = command.getRegisterRequestDTO();
 
-            // Verify OTP matches the email
 
 
             // Check if user already exists
             if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
                 return Either.left("User with this email already exists");
             }
+            // Verify OTP matches the email
 
             if (!otpService.verifyOtp(dto.getEmail(), dto.getOtp())) {
                 return Either.left("Invalid or expired OTP for email: " + dto.getEmail());

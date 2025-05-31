@@ -95,16 +95,6 @@ public class CreateServiceProviderProfileCommandHandler implements CommandHandle
     }
 
     private ServiceProviderProfileDTO mapToDTO(ServiceProviderProfileEntity entity) {
-        return new ServiceProviderProfileDTO(
-                entity.getId(),
-                entity.getUser().getId(),
-                entity.getService().getId(),
-                entity.getService().getName(),
-                entity.getVerificationStatus(),
-                entity.getAverageRating(),
-                entity.getRatingCount(),
-                entity.getCreatedAt(),
-                entity.getUpdatedAt()
-        );
+        return  modelMapper.map(entity, ServiceProviderProfileDTO.class);
     }
 }
