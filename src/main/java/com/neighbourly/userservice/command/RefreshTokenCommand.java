@@ -1,15 +1,19 @@
 package com.neighbourly.userservice.command;
 
 import com.neighbourly.commonservice.dispatcher.Command;
+import com.neighbourly.userservice.dto.LoginResponseDTO;
+import com.neighbourly.userservice.dto.RequestOtpDTO;
+import lombok.Getter;
 
-public class RefreshTokenCommand extends Command<String> {
-    private final String token;
+@Getter
+public class RefreshTokenCommand extends Command<LoginResponseDTO> {
+    private final String refreshToken;
 
-    public RefreshTokenCommand(String token) {
-        this.token = token;
+    public RefreshTokenCommand(String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
-    public String getToken() {
-        return token;
+    public String getRefreshToken() {
+        return refreshToken;
     }
 }

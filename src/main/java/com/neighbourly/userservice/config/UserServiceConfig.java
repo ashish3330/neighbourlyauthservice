@@ -23,7 +23,7 @@ public class UserServiceConfig {
     private final SetLocationCommandHandler setLocationCommandHandler;
     private  final RequestOtpCommandHandler requestOtpCommandHandler;
     private  final SetPasswordCommandHandler setPasswordCommandHandler;
-    private  final RefreshTokenCommandHandler refreshTokenCommandHandler;
+    private  final RefreshTokenHandler refreshTokenCommandHandler;
     private  final CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler;
     private final SubmitDocumentCommandHandler submitDocumentCommandHandler;
     private final SubmitRatingCommandHandler submitRatingCommandHandler;
@@ -35,7 +35,7 @@ public class UserServiceConfig {
                              ChangePasswordCommandHandler changePasswordCommandHandler,
                              GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler,
                              SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler,
-                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenCommandHandler refreshTokenCommandHandler, CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler, SubmitDocumentCommandHandler submitDocumentCommandHandler, SubmitRatingCommandHandler submitRatingCommandHandler, VerifyDocumentCommandHandler verifyDocumentCommandHandler) {
+                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenHandler refreshTokenCommandHandler, CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler, SubmitDocumentCommandHandler submitDocumentCommandHandler, SubmitRatingCommandHandler submitRatingCommandHandler, VerifyDocumentCommandHandler verifyDocumentCommandHandler) {
         this.handlerRegistry = handlerRegistry;
         this.registerUserCommandHandler = registerUserCommandHandler;
         this.loginUserCommandHandler = loginUserCommandHandler;

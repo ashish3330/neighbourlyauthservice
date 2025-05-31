@@ -37,6 +37,11 @@ public class UserService implements GenericService<UserDTO, Long, UserDTO> {
         return syncDispatcher.dispatch(new LoginUserCommand(loginRequestDTO));
     }
 
+    public Either<String, LoginResponseDTO> refreshToken(String refreshToken) {
+        return syncDispatcher.dispatch(new RefreshTokenCommand(refreshToken));
+    }
+
+
     public Either<String, LoginResponseDTO> googleSsoLogin(String googleIdToken) {
         return syncDispatcher.dispatch(new GoogleSsoLoginCommand(googleIdToken));
     }

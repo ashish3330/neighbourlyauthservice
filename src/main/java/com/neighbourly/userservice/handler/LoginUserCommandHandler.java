@@ -10,6 +10,7 @@ import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.exception.InvalidCredentialsException;
 import com.neighbourly.userservice.repository.UserRepository;
 import com.neighbourly.userservice.service.JwtService;
+import jakarta.servlet.http.Cookie;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -51,7 +52,23 @@ public class LoginUserCommandHandler implements CommandHandler<LoginUserCommand,
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
             String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRoles());
-            return Either.right(new LoginResponseDTO(token, userDTO));
+            String refreshToken = jwtService.generateRefreshToken(user.getId());
+
+            Cookie jwtCookie = new Cookie("jwtToken", token);
+            jwtCookie.setHttpOnly(true);
+            jwtCookie.setSecure(true);
+            jwtCookie.setPath("/");
+            jwtCookie.setMaxAge(7 * 24 * 60 * 60);
+            jwtCookie.setAttribute("SameSite", "Strict");
+
+            Cookie refreshCookie = new Cookie("refreshToken", refreshToken);
+            refreshCookie.setHttpOnly(true);
+            refreshCookie.setSecure(true);
+            refreshCookie.setPath("/");
+            refreshCookie.setMaxAge(30 * 24 * 60 * 60);
+            refreshCookie.setAttribute("SameSite", "Strict");
+
+            return Either.right(new LoginResponseDTO(token, userDTO, jwtCookie, refreshCookie, null));
         } catch (InvalidCredentialsException e) {
             return Either.left(e.getMessage());
         } catch (Exception e) {

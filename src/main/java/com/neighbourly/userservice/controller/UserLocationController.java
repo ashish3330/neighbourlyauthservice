@@ -5,6 +5,7 @@ import com.neighbourly.userservice.dto.SetAddressRequestDTO;
 import com.neighbourly.userservice.dto.SetLocationRequestDTO;
 import com.neighbourly.userservice.dto.UserDTO;
 import com.neighbourly.userservice.service.UserLocationService;
+import com.neighbourly.userservice.util.ControllerUtil;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,24 +14,24 @@ import org.springframework.web.bind.annotation.*;
 public class UserLocationController {
 
     private final UserLocationService userLocationService;
+    private final ControllerUtil controllerUtil;
 
-    public UserLocationController(UserLocationService userLocationService) {
+    public UserLocationController(UserLocationService userLocationService, ControllerUtil controllerUtil) {
         this.userLocationService = userLocationService;
+        this.controllerUtil = controllerUtil;
     }
 
     @PostMapping("/set-location")
     public ResponseEntity<?> setLocation(@RequestBody SetLocationRequestDTO dto) {
         Either<String, UserDTO> result = userLocationService.setLocation(dto);
-        return result.isRight()
-                ? ResponseEntity.ok(result.getRight())
-                : ResponseEntity.badRequest().body(result.getLeft());
+        return controllerUtil.toResponseEntity(result);
+
     }
 
     @PostMapping("/set-address")
     public ResponseEntity<?> setAddress(@RequestBody SetAddressRequestDTO dto) {
         Either<String, UserDTO> result = userLocationService.setAddress(dto);
-        return result.isRight()
-                ? ResponseEntity.ok(result.getRight())
-                : ResponseEntity.badRequest().body(result.getLeft());
+        return controllerUtil.toResponseEntity(result);
+
     }
 }

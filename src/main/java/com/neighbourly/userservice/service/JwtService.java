@@ -10,9 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import io.jsonwebtoken.security.SignatureException;
-
-
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -22,24 +20,42 @@ public class JwtService {
     private String secretKey;
 
     @Value("${jwt.expiration}")
-    private long expirationTime;
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh.expiration}")
+    private long refreshTokenExpiration;
 
     public String generateToken(Long userId, String email, Map<String, List<String>> roles) {
-        logger.info("Generating token for userId: {}, email: {}, roles: {}", userId, email, roles);
+        logger.info("Generating access token for userId: {}, email: {}, roles: {}", userId, email, roles);
         try {
-            String token = Jwts.builder()
+            return Jwts.builder()
                     .setSubject(email)
                     .claim("userId", userId)
                     .claim("roles", roles)
                     .setIssuedAt(new Date())
-                    .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
+                    .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
                     .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
                     .compact();
-            logger.info("Generated token successfully for userId: {}", userId);
-            return token;
         } catch (Exception e) {
-            logger.error("Error generating token for userId: {}, error: {}", userId, e.getMessage());
-            throw new RuntimeException("Failed to generate token", e);
+            logger.error("Error generating access token for userId: {}, error: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to generate access token", e);
+        }
+    }
+
+    public String generateRefreshToken(Long userId) {
+        logger.info("Generating refresh token for userId: {}", userId);
+        try {
+            return Jwts.builder()
+                    .setSubject(userId.toString())
+                    .claim("type", "refresh")
+                    .setId(UUID.randomUUID().toString())
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (Exception e) {
+            logger.error("Error generating refresh token for userId: {}, error: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to generate refresh token", e);
         }
     }
 
@@ -51,31 +67,38 @@ public class JwtService {
                     .parseClaimsJws(token);
             logger.info("Token validated successfully");
             return true;
-        } catch (SignatureException e) {
-            logger.error("Invalid JWT signature: {}", e.getMessage());
-            return false;
-        } catch (ExpiredJwtException e) {
-            logger.error("JWT token is expired: {}", e.getMessage());
-            return false;
-        } catch (MalformedJwtException e) {
-            logger.error("Invalid JWT token structure: {}", e.getMessage());
-            return false;
         } catch (Exception e) {
             logger.error("JWT validation error: {}", e.getMessage());
             return false;
         }
     }
 
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            if (!"refresh".equals(claims.get("type"))) {
+                logger.error("Token is not a refresh token");
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Refresh token validation error: {}", e.getMessage());
+            return false;
+        }
+    }
+
     public String getEmailFromToken(String token) {
         try {
-            String email = Jwts.parserBuilder()
+            return Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                     .build()
                     .parseClaimsJws(token)
                     .getBody()
                     .getSubject();
-            logger.info("Extracted email: {}", email);
-            return email;
         } catch (Exception e) {
             logger.error("Error extracting email from token: {}", e.getMessage());
             throw new RuntimeException("Failed to extract email", e);
@@ -84,14 +107,16 @@ public class JwtService {
 
     public Long getUserIdFromToken(String token) {
         try {
-            Long userId = Jwts.parserBuilder()
+            Claims claims = Jwts.parserBuilder()
                     .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                     .build()
                     .parseClaimsJws(token)
-                    .getBody()
-                    .get("userId", Long.class);
-            logger.info("Extracted userId: {}", userId);
-            return userId;
+                    .getBody();
+            String type = claims.get("type", String.class);
+            if ("refresh".equals(type)) {
+                return Long.parseLong(claims.getSubject());
+            }
+            return claims.get("userId", Long.class);
         } catch (Exception e) {
             logger.error("Error extracting userId from token: {}", e.getMessage());
             throw new RuntimeException("Failed to extract userId", e);
@@ -107,7 +132,6 @@ public class JwtService {
                     .parseClaimsJws(token)
                     .getBody()
                     .get("roles", Map.class);
-            logger.info("Extracted roles: {}", roles);
             return roles;
         } catch (Exception e) {
             logger.error("Error extracting roles from token: {}", e.getMessage());

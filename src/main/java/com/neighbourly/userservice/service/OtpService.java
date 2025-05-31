@@ -5,6 +5,7 @@ import com.neighbourly.userservice.repository.OtpRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -15,38 +16,57 @@ import java.util.Random;
 public class OtpService {
     private final OtpRepository otpRepository;
     private final JavaMailSender javaMailSender;
-    private static final int OTP_LENGTH = 6;
-    private static final int OTP_VALIDITY_MINUTES = 5;
+    private static final int OTP_VALIDITY_MINUTES = 3;
 
     public OtpService(OtpRepository otpRepository, JavaMailSender javaMailSender) {
         this.otpRepository = otpRepository;
         this.javaMailSender = javaMailSender;
     }
 
-
     @Transactional
     public String generateAndSendOtp(String identifier) {
-        // Generate a 6-digit OTP
-        String otp = generateOtp();
+        if (!isValidEmail(identifier)) {
+            throw new IllegalArgumentException("Invalid email format");
+        }
 
-        // Store OTP in PostgreSQL
-        Otp otpEntity = new Otp();
-        otpEntity.setIdentifier(identifier);
-        otpEntity.setOtp(otp);
-        otpEntity.setCreatedAt(LocalDateTime.now());
-        otpEntity.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_VALIDITY_MINUTES));
+        try {
+            String otp = generateOtp();
+            identifier = identifier.trim().toLowerCase(); // Normalize identifier
 
-        // Clean up old OTPs for this identifier
-        otpRepository.deleteByIdentifier(identifier);
-        otpRepository.save(otpEntity);
+            // Check if an OTP exists for the identifier
+            Optional<Otp> existingOtp = otpRepository.findByIdentifier(identifier);
+            Otp otpEntity;
+            if (existingOtp.isPresent()) {
+                // Update existing OTP
+                otpEntity = existingOtp.get();
+                otpEntity.setOtp(otp);
+                otpEntity.setCreatedAt(LocalDateTime.now());
+                otpEntity.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_VALIDITY_MINUTES));
+            } else {
+                // Create new OTP
+                otpEntity = new Otp();
+                otpEntity.setIdentifier(identifier);
+                otpEntity.setOtp(otp);
+                otpEntity.setCreatedAt(LocalDateTime.now());
+                otpEntity.setExpiresAt(LocalDateTime.now().plusMinutes(OTP_VALIDITY_MINUTES));
+            }
 
-        // Send OTP via email
-        sendOtp(identifier, otp);
+            // Save (insert or update) the OTP entity
+            otpRepository.saveAndFlush(otpEntity);
 
-        return otp;
+            // Send OTP via email
+            sendOtp(identifier, otp);
+            return otp;
+        } catch (Exception e) {
+            // Use a proper logger (e.g., SLF4J) in production
+            System.err.println("Error generating/sending OTP: " + e.getMessage());
+            throw new RuntimeException("Failed to generate or send OTP", e);
+        }
     }
+
     @Transactional
     public boolean verifyOtp(String identifier, String otp) {
+        identifier = identifier.trim().toLowerCase(); // Normalize identifier
         Optional<Otp> otpEntity = otpRepository.findByIdentifierAndOtp(identifier, otp);
         if (otpEntity.isEmpty()) {
             return false; // OTP not found or incorrect
@@ -59,6 +79,18 @@ public class OtpService {
         otpRepository.deleteByIdentifier(identifier);
         return true;
     }
+
+    @Transactional
+    @Scheduled(fixedRate = 60000) // Run every 60 seconds
+    public void deleteExpiredOtps() {
+        try {
+            otpRepository.deleteByExpiresAtBefore(LocalDateTime.now());
+        } catch (Exception e) {
+            // Use a proper logger (e.g., SLF4J) in production
+            System.err.println("Error deleting expired OTPs: " + e.getMessage());
+        }
+    }
+
     private String generateOtp() {
         Random random = new Random();
         int otp = 100000 + random.nextInt(900000); // 6-digit OTP
@@ -66,13 +98,24 @@ public class OtpService {
     }
 
     private void sendOtp(String identifier, String otp) {
-        // Implement email sending logic using JavaMailSender
-        SimpleMailMessage message = new SimpleMailMessage();
-        message.setTo(identifier);
-        System.out.println("Sending OTP: " + otp);
-        message.setSubject("Your OTP for Registration");
-        message.setText("Your OTP is: " + otp + ". It is valid for " + OTP_VALIDITY_MINUTES + " minutes.");
-        message.setFrom("your-email@gmail.com"); // Must match spring.mail.username
-        javaMailSender.send(message);
+        try {
+            SimpleMailMessage message = new SimpleMailMessage();
+            message.setTo(identifier);
+            message.setSubject("Your OTP for Registration");
+            System.out.println("Sending OTP to: " + identifier);
+            System.out.println("OTP: " + otp);
+            message.setText("Your OTP is: " + otp + ". It is valid for " + OTP_VALIDITY_MINUTES + " minutes.");
+            message.setFrom("your-email@gmail.com"); // Must match spring.mail.username
+            javaMailSender.send(message);
+        } catch (Exception e) {
+            // Use a proper logger (e.g., SLF4J) in production
+            System.err.println("Error sending OTP email: " + e.getMessage());
+            throw new RuntimeException("Failed to send OTP email", e);
+        }
+    }
+
+    private boolean isValidEmail(String identifier) {
+        String emailRegex = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
+        return identifier != null && identifier.matches(emailRegex);
     }
 }
