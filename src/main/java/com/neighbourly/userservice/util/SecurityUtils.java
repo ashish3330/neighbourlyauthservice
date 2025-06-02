@@ -1,5 +1,6 @@
 package com.neighbourly.userservice.util;
 
+import com.neighbourly.userservice.security.CustomPrincipal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;

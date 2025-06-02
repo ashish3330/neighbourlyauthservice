@@ -1,6 +1,5 @@
 package com.neighbourly.userservice.service;
 
-import com.neighbourly.commonservice.dispatcher.Dispatcher;
 import com.neighbourly.commonservice.dispatcher.SyncDispatcher;
 import com.neighbourly.commonservice.errorhandling.Either;
 import com.neighbourly.userservice.command.*;

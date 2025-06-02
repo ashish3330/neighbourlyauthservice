@@ -2,7 +2,9 @@ package com.neighbourly.userservice.command;
 
 import com.neighbourly.commonservice.dispatcher.Command;
 import com.neighbourly.userservice.dto.RequestOtpDTO;
+import lombok.Getter;
 
+@Getter
 public class RequestOtpCommand extends Command<String> {
     private final RequestOtpDTO requestOtpDTO;
 
@@ -10,7 +12,4 @@ public class RequestOtpCommand extends Command<String> {
         this.requestOtpDTO = requestOtpDTO;
     }
 
-    public RequestOtpDTO getRequestOtpDTO() {
-        return requestOtpDTO;
-    }
 }

@@ -2,7 +2,9 @@ package com.neighbourly.userservice.command;
 
 import com.neighbourly.commonservice.dispatcher.Command;
 import com.neighbourly.userservice.dto.ChangePasswordRequestDTO;
+import lombok.Getter;
 
+@Getter
 public class ChangePasswordCommand extends Command<Void> {
     private final Long userId;
     private final ChangePasswordRequestDTO changePasswordRequestDTO;
@@ -12,11 +14,4 @@ public class ChangePasswordCommand extends Command<Void> {
         this.changePasswordRequestDTO = changePasswordRequestDTO;
     }
 
-    public Long getUserId() {
-        return userId;
-    }
-
-    public ChangePasswordRequestDTO getChangePasswordRequestDTO() {
-        return changePasswordRequestDTO;
-    }
 }
