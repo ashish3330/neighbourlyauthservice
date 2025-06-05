@@ -1,58 +1,141 @@
 package com.neighbourly.userservice.service;
 
-import com.neighbourly.userservice.config.JwtConfig;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.security.Key;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 @Service
 public class JwtService {
+    private static final Logger logger = LoggerFactory.getLogger(JwtService.class);
 
-    private final JwtConfig jwtConfig;
+    @Value("${jwt.secret}")
+    private String secretKey;
 
-    public JwtService(JwtConfig jwtConfig) {
-        this.jwtConfig = jwtConfig;
+    @Value("${jwt.expiration}")
+    private long accessTokenExpiration;
+
+    @Value("${jwt.refresh.expiration}")
+    private long refreshTokenExpiration;
+
+    public String generateToken(Long userId, String email, Map<String, List<String>> roles) {
+        logger.info("Generating access token for userId: {}, email: {}, roles: {}", userId, email, roles);
+        try {
+            return Jwts.builder()
+                    .setSubject(email)
+                    .claim("userId", userId)
+                    .claim("roles", roles)
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + accessTokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (Exception e) {
+            logger.error("Error generating access token for userId: {}, error: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to generate access token", e);
+        }
     }
 
-    public String generateToken(String username) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtConfig.getExpiration());
-
-        return Jwts.builder()
-                .setSubject(username)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS512)
-                .compact();
-    }
-
-    public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
-        return claims.getSubject();
+    public String generateRefreshToken(Long userId) {
+        logger.info("Generating refresh token for userId: {}", userId);
+        try {
+            return Jwts.builder()
+                    .setSubject(userId.toString())
+                    .claim("type", "refresh")
+                    .setId(UUID.randomUUID().toString())
+                    .setIssuedAt(new Date())
+                    .setExpiration(new Date(System.currentTimeMillis() + refreshTokenExpiration))
+                    .signWith(Keys.hmacShaKeyFor(secretKey.getBytes()), SignatureAlgorithm.HS256)
+                    .compact();
+        } catch (Exception e) {
+            logger.error("Error generating refresh token for userId: {}, error: {}", userId, e.getMessage());
+            throw new RuntimeException("Failed to generate refresh token", e);
+        }
     }
 
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
                     .build()
                     .parseClaimsJws(token);
+            logger.info("Token validated successfully");
             return true;
         } catch (Exception e) {
+            logger.error("JWT validation error: {}", e.getMessage());
             return false;
         }
     }
 
-    private Key getSigningKey() {
-        return  Keys.secretKeyFor(SignatureAlgorithm.HS512);
+    public boolean validateRefreshToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            if (!"refresh".equals(claims.get("type"))) {
+                logger.error("Token is not a refresh token");
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            logger.error("Refresh token validation error: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    public String getEmailFromToken(String token) {
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .getSubject();
+        } catch (Exception e) {
+            logger.error("Error extracting email from token: {}", e.getMessage());
+            throw new RuntimeException("Failed to extract email", e);
+        }
+    }
+
+    public Long getUserIdFromToken(String token) {
+        try {
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+            String type = claims.get("type", String.class);
+            if ("refresh".equals(type)) {
+                return Long.parseLong(claims.getSubject());
+            }
+            return claims.get("userId", Long.class);
+        } catch (Exception e) {
+            logger.error("Error extracting userId from token: {}", e.getMessage());
+            throw new RuntimeException("Failed to extract userId", e);
+        }
+    }
+
+    public Map<String, List<String>> getRolesFromToken(String token) {
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, List<String>> roles = Jwts.parserBuilder()
+                    .setSigningKey(Keys.hmacShaKeyFor(secretKey.getBytes()))
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody()
+                    .get("roles", Map.class);
+            return roles;
+        } catch (Exception e) {
+            logger.error("Error extracting roles from token: {}", e.getMessage());
+            throw new RuntimeException("Failed to extract roles", e);
+        }
     }
 }

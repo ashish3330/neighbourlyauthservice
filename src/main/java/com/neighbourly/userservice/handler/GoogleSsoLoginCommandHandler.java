@@ -12,6 +12,9 @@ import com.neighbourly.userservice.service.JwtService;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.Map;
+
 @Component
 public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLoginCommand, LoginResponseDTO> {
 
@@ -35,20 +38,22 @@ public class GoogleSsoLoginCommandHandler implements CommandHandler<GoogleSsoLog
                 return Either.left("Google ID token is required");
             }
             GoogleSsoService.GoogleUserInfo userInfo = googleSsoService.verifyIdToken(command.getGoogleIdToken());
-            User user = userRepository.findByGoogleId(userInfo.getGoogleId())
+            User user = userRepository.findByEmail(userInfo.getEmail())
                     .orElseGet(() -> {
                         User newUser = new User();
-                        newUser.setGoogleId(userInfo.getGoogleId());
                         newUser.setEmail(userInfo.getEmail());
                         newUser.setName(userInfo.getName());
                         newUser.setPhoneNumber("");
-                        newUser.setPassword(""); // No password for SSO users
+                        newUser.setPassword("");
+                        newUser.setRoles(Map.of("user", List.of("read"))); // Default role
                         return userRepository.save(newUser);
                     });
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getEmail());
-            return Either.right(new LoginResponseDTO(token, userDTO));
+            String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRoles());
+            String refreshToken = jwtService.generateRefreshToken(user.getId());
+
+            return Either.right(new LoginResponseDTO(token, refreshToken, userDTO, null, null, null));
         } catch (Exception e) {
             return Either.left("Google SSO login failed: " + e.getMessage());
         }

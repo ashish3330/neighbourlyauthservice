@@ -3,9 +3,14 @@ package com.neighbourly.userservice.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Getter;
+import lombok.Setter;
 
+@Setter
+@Getter
 public class ChangePasswordRequestDTO {
 
+    // Getters and Setters
     @NotBlank(message = "Current password is mandatory")
     private String currentPassword;
 
@@ -13,10 +18,4 @@ public class ChangePasswordRequestDTO {
     @Size(min = 8, message = "New password must be at least 8 characters")
     private String newPassword;
 
-    // Getters and Setters
-    public String getCurrentPassword() { return currentPassword; }
-    public void setCurrentPassword(String currentPassword) { this.currentPassword = currentPassword; }
-
-    public String getNewPassword() { return newPassword; }
-    public void setNewPassword(String newPassword) { this.newPassword = newPassword; }
 }

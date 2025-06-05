@@ -10,6 +10,8 @@ import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.exception.InvalidCredentialsException;
 import com.neighbourly.userservice.repository.UserRepository;
 import com.neighbourly.userservice.service.JwtService;
+import com.neighbourly.userservice.util.CookieUtil;
+import jakarta.servlet.http.Cookie;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
@@ -21,13 +23,15 @@ public class LoginUserCommandHandler implements CommandHandler<LoginUserCommand,
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private  final CookieUtil  cookieUtil;
 
     public LoginUserCommandHandler(UserRepository userRepository, ModelMapper modelMapper,
-                                   PasswordEncoder passwordEncoder, JwtService jwtService) {
+                                   PasswordEncoder passwordEncoder, JwtService jwtService, CookieUtil cookieUtil) {
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
+        this.cookieUtil = cookieUtil;
     }
 
     @Override
@@ -50,8 +54,12 @@ public class LoginUserCommandHandler implements CommandHandler<LoginUserCommand,
             }
 
             UserDTO userDTO = modelMapper.map(user, UserDTO.class);
-            String token = jwtService.generateToken(user.getEmail());
-            return Either.right(new LoginResponseDTO(token, userDTO));
+            String token = jwtService.generateToken(user.getId(), user.getEmail(), user.getRoles());
+            String refreshToken = jwtService.generateRefreshToken(user.getId());
+
+            Cookie jwtCookie = cookieUtil.createServletAccessCookie(token);
+            Cookie refreshCookie = cookieUtil.createServletRefreshCookie(refreshToken);
+            return Either.right(new LoginResponseDTO(token, refreshToken, userDTO, jwtCookie, refreshCookie, null));
         } catch (InvalidCredentialsException e) {
             return Either.left(e.getMessage());
         } catch (Exception e) {
