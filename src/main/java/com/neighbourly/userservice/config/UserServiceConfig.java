@@ -28,6 +28,8 @@ public class UserServiceConfig {
     private final SubmitDocumentCommandHandler submitDocumentCommandHandler;
     private final SubmitRatingCommandHandler submitRatingCommandHandler;
     private final VerifyDocumentCommandHandler verifyDocumentCommandHandler;
+    private  final  SetAddressCommandHandler setAddressCommandHandler;
+
 
     public UserServiceConfig(HandlerRegistry handlerRegistry,
                              RegisterUserCommandHandler registerUserCommandHandler,
@@ -35,7 +37,7 @@ public class UserServiceConfig {
                              ChangePasswordCommandHandler changePasswordCommandHandler,
                              GoogleSsoLoginCommandHandler googleSsoLoginCommandHandler,
                              SetLocationCommandHandler setLocationCommandHandler, RequestOtpCommandHandler requestOtpCommandHandler,
-                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenHandler refreshTokenCommandHandler, CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler, SubmitDocumentCommandHandler submitDocumentCommandHandler, SubmitRatingCommandHandler submitRatingCommandHandler, VerifyDocumentCommandHandler verifyDocumentCommandHandler) {
+                             SetPasswordCommandHandler setPasswordCommandHandler, RefreshTokenHandler refreshTokenCommandHandler, CreateServiceProviderProfileCommandHandler createServiceProviderProfileCommandHandler, SubmitDocumentCommandHandler submitDocumentCommandHandler, SubmitRatingCommandHandler submitRatingCommandHandler, VerifyDocumentCommandHandler verifyDocumentCommandHandler, SetAddressCommandHandler setAddressCommandHandler) {
         this.handlerRegistry = handlerRegistry;
         this.registerUserCommandHandler = registerUserCommandHandler;
         this.loginUserCommandHandler = loginUserCommandHandler;
@@ -49,6 +51,7 @@ public class UserServiceConfig {
         this.submitDocumentCommandHandler = submitDocumentCommandHandler;
         this.submitRatingCommandHandler = submitRatingCommandHandler;
         this.verifyDocumentCommandHandler = verifyDocumentCommandHandler;
+        this.setAddressCommandHandler = setAddressCommandHandler;
     }
 
     @PostConstruct
@@ -65,6 +68,7 @@ public class UserServiceConfig {
         handlerRegistry.registerHandler(SubmitDocumentCommand.class, submitDocumentCommandHandler);
         handlerRegistry.registerHandler(SubmitRatingCommand.class, submitRatingCommandHandler);
         handlerRegistry.registerHandler(VerifyDocumentCommand.class, verifyDocumentCommandHandler);
+        handlerRegistry.registerHandler(SetAddressCommand.class, setAddressCommandHandler);
     }
 
 

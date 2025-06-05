@@ -24,8 +24,9 @@ public class GeocodeService {
     private static final String USER_AGENT = "NeighbourlyApp";
 
     public double[] geocode(Address address) throws IOException {
+        // Primary query with full address including postal code
         String query = URLEncoder.encode(String.join(" ", Arrays.asList(
-                address.getStreet(), address.getCity(), address.getState(), address.getCountry()
+                address.getStreet(), address.getCity(), address.getState(), address.getCountry(), address.getPostalCode()
         )), StandardCharsets.UTF_8);
 
         String urlStr = "https://nominatim.openstreetmap.org/search?q=" + query + "&format=json&limit=1";
@@ -35,15 +36,37 @@ public class GeocodeService {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestMethod("GET");
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
             String response = reader.lines().collect(Collectors.joining());
+            logger.debug("Raw API response geocode: {}", response);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode arr = mapper.readTree(response);
 
-            if (!arr.isArray() || arr.size() == 0) {
-                logger.warn("Geocoding failed: no results found for address: {}", address);
-                throw new RuntimeException("Address not found");
+            // Fallback query if primary fails
+            if (!arr.isArray() || arr.isEmpty()) {
+                logger.warn("Geocoding failed: no results found for address: {}. Trying fallback.", address);
+                String fallbackQuery = URLEncoder.encode(String.join(" ", Arrays.asList(
+                        address.getCity(), address.getState(), address.getCountry(), address.getPostalCode()
+                )), StandardCharsets.UTF_8);
+                urlStr = "https://nominatim.openstreetmap.org/search?q=" + fallbackQuery + "&format=json&limit=1";
+                conn = (HttpURLConnection) new URL(urlStr).openConnection();
+                conn.setRequestProperty("User-Agent", USER_AGENT);
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+
+                try (BufferedReader fallbackReader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
+                    response = fallbackReader.lines().collect(Collectors.joining());
+                    logger.debug("Fallback API response: {}", response);
+                    arr = mapper.readTree(response);
+                    if (!arr.isArray() || arr.isEmpty()) {
+                        logger.error("Geocoding failed: no results found for fallback query: {}", fallbackQuery);
+                        throw new RuntimeException("Address not found even with fallback query");
+                    }
+                }
             }
 
             JsonNode first = arr.get(0);
@@ -53,6 +76,9 @@ public class GeocodeService {
             logger.debug("Geocoding successful: lat={}, lon={}", lat, lon);
 
             return new double[]{lat, lon};
+        } catch (IOException e) {
+            logger.error("Geocoding failed for address: {}. Error: {}", address, e.getMessage());
+            throw e;
         }
     }
 
@@ -64,9 +90,12 @@ public class GeocodeService {
         HttpURLConnection conn = (HttpURLConnection) new URL(urlStr).openConnection();
         conn.setRequestProperty("User-Agent", USER_AGENT);
         conn.setRequestMethod("GET");
+        conn.setConnectTimeout(5000);
+        conn.setReadTimeout(5000);
 
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()))) {
             String response = reader.lines().collect(Collectors.joining());
+            logger.debug("Raw API response reverse geocode: {}", response);
             ObjectMapper mapper = new ObjectMapper();
             JsonNode json = mapper.readTree(response);
             JsonNode addr = json.get("address");
@@ -86,6 +115,9 @@ public class GeocodeService {
             logger.debug("Reverse geocoding successful: {}", address);
 
             return address;
+        } catch (IOException e) {
+            logger.error("Reverse geocoding failed for lat={}, lon={}. Error: {}", lat, lon, e.getMessage());
+            throw e;
         }
     }
 }

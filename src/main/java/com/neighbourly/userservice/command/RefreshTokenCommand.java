@@ -13,7 +13,4 @@ public class RefreshTokenCommand extends Command<LoginResponseDTO> {
         this.refreshToken = refreshToken;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
 }
