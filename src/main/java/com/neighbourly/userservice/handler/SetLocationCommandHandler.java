@@ -10,6 +10,9 @@ import com.neighbourly.userservice.entity.User;
 import com.neighbourly.userservice.repository.AddressRepository;
 import com.neighbourly.userservice.repository.UserRepository;
 import com.neighbourly.userservice.service.GeocodeService;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.modelmapper.ModelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +27,8 @@ public class SetLocationCommandHandler implements CommandHandler<SetLocationComm
     private final AddressRepository addressRepository;
     private final ModelMapper modelMapper;
     private final GeocodeService geocodeService;
+    private static final GeometryFactory geometryFactory = new GeometryFactory();
+
 
     public SetLocationCommandHandler(UserRepository userRepository, AddressRepository addressRepository,
                                      ModelMapper modelMapper, GeocodeService geocodeService) {
@@ -52,8 +57,9 @@ public class SetLocationCommandHandler implements CommandHandler<SetLocationComm
 
             Address address = geocodeService.reverseGeocode(dto.getLatitude(), dto.getLongitude());
 
-            user.setLatitude(dto.getLatitude());
-            user.setLongitude(dto.getLongitude());
+            Point point = geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));
+
+            user.setLocation(point);
             user.setAddress(address);
             address.setUser(user);
 
