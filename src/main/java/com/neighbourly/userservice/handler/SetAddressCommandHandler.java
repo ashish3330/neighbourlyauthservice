@@ -59,7 +59,7 @@ public class SetAddressCommandHandler implements CommandHandler<SetAddressComman
 
             double[] latLon = geocodeService.geocode(address);
             Point point = geometryFactory.createPoint(new Coordinate(latLon[1], latLon[0]));
-
+            point.setSRID(4326);
             user.setLocation(point);
             user.setAddress(address);
             address.setUser(user);

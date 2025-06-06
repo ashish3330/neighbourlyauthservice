@@ -57,8 +57,8 @@ public class SetLocationCommandHandler implements CommandHandler<SetLocationComm
 
             Address address = geocodeService.reverseGeocode(dto.getLatitude(), dto.getLongitude());
 
-            Point point = geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));
-
+            Point point = geometryFactory.createPoint(new Coordinate(dto.getLongitude(), dto.getLatitude()));point.setSRID(4326);
+            point.setSRID(4326);
             user.setLocation(point);
             user.setAddress(address);
             address.setUser(user);

@@ -58,8 +58,7 @@ public class RegisterUserCommandHandler implements CommandHandler<RegisterUserCo
             user.setEmail(dto.getEmail());
             user.setPhoneNumber(dto.getPhoneNumber());
             user.setPassword(passwordEncoder.encode(dto.getPassword()));
-            user.setLatitude(null);
-            user.setLongitude(null);
+            user.setLocation(null);
             user.setRoles(new HashMap<>());
 
             User savedUser = userRepository.save(user);
